@@ -1,0 +1,2594 @@
+
+# 2025-08-11 05:20:14.619343
++/voice
+
+# 2025-08-11 05:21:02.328925
++/models grok
+
+# 2025-08-11 05:28:12.546958
++Do you see that we have an REDIS connection in this application? I also see that we have a task icon on our left toolbar that we haven't made a page for, What do you think about trying to make a legit task manager with REDIS for scheduled workflow or something?
+
+# 2025-08-11 05:30:34.965311
++Are you able to see images? I'm kind of worried about having you work on this if you don't see any images because there is an REDIS connection you can see it right on the front page in the right Artifact window there's a thing called neural Highway, And there's a task icon in the left toolbar that doesn't have anything added to it yet
+
+# 2025-08-11 05:30:37.792126
++n
+
+# 2025-08-11 05:30:45.058366
++y
+
+# 2025-08-11 05:31:35.295070
++Can you run a repo map? Obviously don't hit the stupid ones like the node packages
+
+# 2025-08-11 05:31:50.997556
++n
+
+# 2025-08-11 05:32:16.859009
++You have a feature inside of AIDER which is what we're using That maps out my repository and I'm trying to figure out how to engage it
+
+# 2025-08-11 05:32:48.844643
++/map-refresh
+
+# 2025-08-11 05:32:53.608679
++/map
+
+# 2025-08-11 05:33:18.687431
++I found it this is what I'm talking about Here are summaries of some files present in my git repository.
++Do not propose changes to these files, treat them as *read-only*.
++If you need to edit any of these files, ask me to *add them to the chat* first.
++
++.gitignore
++
++AI_RULES.md
++
++LICENSE
++
++README.md
++
++components.json
++
++next.config.ts
++
++package.json
++
++pnpm-lock.yaml
++
++postcss.config.mjs
++
++public/file.svg
++
++public/globe.svg
++
++public/next.svg
++
++public/vercel.svg
++
++public/window.svg
++
++src/app/agent/page.tsx:
++⋮
++│export default function AgentPage() {
++│  const { config, save, replaceAll, loading } = useAgentConfig();
++│  const router = useRouter();
++│
++│  const [mainPrompt, setMainPrompt] = React.useState(config.mainPrompt);
++│  const [scoutPrompt, setScoutPrompt] = React.useState(config.scoutPrompt || "Describe what you see
++│  const [assistantPrompt, setAssistantPrompt] = React.useState(config.assistantPrompt || "You are a
++│  
++│  React.useEffect(() => setMainPrompt(config.mainPrompt), [config.mainPrompt]);
++│  React.useEffect(() => setScoutPrompt(config.scoutPrompt || "Describe what you see on screen in 50
++⋮
++│  return (
++│    <div className="flex h-full w-full flex-col gap-4 p-4 md:p-6">
++│      <div className="flex items-center justify-between">
++│        <div className="flex items-center gap-2">
++│          <Button variant="ghost" size="icon" onClick={() => router.back()} aria-label="Go back">
++│            <ChevronLeft className="h-5 w-5" />
++│          </Button>
++│          <h1 className="text-xl font-semibold">Sylvia — Main Agent</h1>
++│        </div>
++│        <div className="flex items-center gap-2">
++│          <label className="cursor-pointer">
++│            <input
++│              type="file"
++⋮
++
++src/app/api/chat/route.ts:
++⋮
++│interface RequestBody {
++│  prompt: string;
++│  file?: {
++│    mimeType: string;
++│    data: string; // base64 encoded string
++│  };
++│  messages?: Array<{
++│    id: string;
++│    role: "user" | "assistant";
++│    content: string;
++⋮
++│export async function POST(req: NextRequest) {
++│  try {
++│    const { prompt, file, messages = [], agentConfig, sessionId } = (await req.json()) as RequestBo
++│
++│    // DEBUG LOGGING FOR SECOND REQUEST FAILURES
++│    console.log('=== CHAT REQUEST DEBUG ===');
++│    console.log('Request number (approx):', messages.length + 1);
++│    console.log('Messages count:', messages.length);
++│    console.log('Session ID:', sessionId);
++│    console.log('Has prompt:', !!prompt);
++│    console.log('Has file:', !!file);
++⋮
++│    for (let step = 0; step < maxSteps; step++) {
++│      console.log('🤖 Sending request to Gemini, step:', step);
++│      try {
++│        const result = await model.generateContent({ contents });
++│        console.log('✅ Received response from Gemini, step:', step);
++│        const response = result.response;
++│        const functionCalls = response.functionCalls();
++│
++│        if (functionCalls && functionCalls.length > 0) {
++│          // Append the model's turn that contained the tool call(s)
++│          contents.push(response.candidates![0].content);
++│
++│          // Execute each call in parallel
++│          const toolResults = await Promise.all(
++│            functionCalls.map(async (call: FunctionCall) => {
++│              return executeTool(call);
++│            })
++│          );
++│
++⋮
++│        } else {
++│          // No function calls, so we have the final response.
++│          const streamResult = await model.generateContentStream({ contents });
++│
++│          const readableStream = new ReadableStream({
++│            async start(controller) {
++│              const encoder = new TextEncoder();
++│              for await (const chunk of streamResult.stream) {
++│                const text = chunk.text();
++│                if (text) {
++│                  controller.enqueue(encoder.encode(text));
++│                }
++│              }
++│              controller.close();
++⋮
++│    const readableStream = new ReadableStream({
++│      async start(controller) {
++│        const encoder = new TextEncoder();
++│        for await (const chunk of streamResult.stream) {
++│          const text = chunk.text();
++│          if (text) {
++│            controller.enqueue(encoder.encode(text));
++│          }
++│        }
++│        controller.close();
++⋮
++
++src/app/favicon.ico
++
++src/app/globals.css
++
++src/app/layout.tsx:
++⋮
++│export default function RootLayout({
++│  children,
++⋮
++
++src/app/page.tsx:
++⋮
++│export default function Home() {
++│  return (
++│    <main className="h-screen w-screen bg-background text-foreground">
++│      <ChatLayout />
++│    </main>
++│  );
++⋮
++
++src/components/artifacts-panel.tsx:
++⋮
++│type ArtifactItem =
++⋮
++│interface ArtifactsPanelProps {
++│  onClose: () => void;
++│  /** Optional: provide artifacts to render. If omitted, shows the empty state. */
++│  items?: ArtifactItem[];
++│  /** Optional: custom title */
++│  title?: string;
++│  /** Main agent context for auxiliary agent */
++│  mainAgentContext?: string;
++│  /** Session ID for neural highway */
++│  sessionId?: string;
++⋮
++│export function ArtifactsPanel({ onClose, items, title = 'Artifacts', mainAgentContext, sessionId }
++│  const rootRef = useRef<HTMLDivElement>(null);
++│
++│  // Close on Escape
++│  useEffect(() => {
++│    const fn = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
++│    window.addEventListener('keydown', fn);
++│    return () => window.removeEventListener('keydown', fn);
++│  }, [onClose]);
++│
++⋮
++│      const pretty = safeStringify(item.data);
++⋮
++│    <div className="mt-2 flex items-center gap-2">
++│      {copyText != null && (
++│        <Button
++│          variant="outline"
++│          size="sm"
++│          onClick={() => navigator.clipboard?.writeText(copyText)}
++│          className="h-7 gap-1"
++│        >
++│          <Copy className="h-3.5 w-3.5" />
++│          <span className="text-xs">Copy</span>
++│        </Button>
++│      )}
++│      {downloadDataUrl && filename && (
++│        <Button
++│          variant="outline"
++│          size="sm"
++│          onClick={() => download(downloadDataUrl, filename)}
++│          className="h-7 gap-1"
++│        >
++│          <Download className="h-3.5 w-3.5" />
++│          <span className="text-xs">Download</span>
++│        </Button>
++⋮
++
++src/components/attachment-admonition.tsx:
++⋮
++│type Status = "ready" | "uploading" | "error";
++│
++│interface AttachmentAdmonitionProps {
++│  fileName: string;
++│  fileSizeBytes?: number;       // optional: show "23.4 KB"
++│  status?: Status;              // optional: "ready" | "uploading" | "error"
++│  progress?: number;            // optional: 0..100 when uploading
++│  onRemove?: () => void;        // optional: show an X button
++│  onClick?: () => void;         // optional: click row to preview
++⋮
++│    <div
++│      role="button"
++│      onClick={onClick}
++│      className={[
++│        "mt-2 flex items-center gap-2 rounded-lg border p-2 transition",
++│        "bg-background/50",
++│        isError
++│          ? "border-rose-500/40 bg-rose-500/5"
++│          : isUploading
++│          ? "border-amber-500/40 bg-amber-500/5"
++⋮
++│      ].join(" ")}
++⋮
++
++src/components/chat-header.tsx:
++⋮
++│interface ChatHeaderProps {
++│  onToggleArtifacts: () => void;
++│  onToggleVision?: () => void;
++⋮
++
++src/components/chat-input.tsx:
++⋮
++│interface ChatInputProps {
++│  onSend: (content: string, file?: File) => void;
++│  attachedFile: File | null;
++│  onFileRemove: () => void;
++⋮
++│        )}
++│
++⋮
++│          <Textarea
++│            ref={textareaRef}
++│            rows={1}
++│            placeholder="How can Sylvia help?"
++│            className="min-h-[52px] max-h-[320px] resize-none rounded-2xl border-2 border-input bg-
++│            value={content}
++│            onChange={(e) => setContent(e.target.value)}
++│            onKeyDown={handleKeyDown}
++⋮
++
++src/components/chat-layout.tsx
++
++src/components/chat-messages.tsx:
++⋮
++│interface ChatMessagesProps {
++│  messages: Message[];
++⋮
++
++src/components/file-preview.tsx:
++⋮
++│type Status = "ready" | "uploading" | "error";
++│
++│interface FilePreviewProps {
++│  file: File;
++│  onRemove: () => void;
++│  /** Optional: show state (adds color + progress bar if uploading) */
++│  status?: Status;
++│  /** Optional: 0..100 progress bar when uploading */
++│  progress?: number;
++⋮
++│        <div
++│          className={[
++│            "flex items-center justify-between rounded-lg border p-2 text-sm transition",
++│            stateClass,
++│          ].join(" ")}
++│          role="status"
++│          aria-live="polite"
++⋮
++
++src/components/message.tsx
++
++src/components/sidebar.tsx:
++⋮
++│export function Sidebar() {
++│  return (
++│    <div className="flex h-full flex-col items-center bg-sidebar p-2 text-sidebar-foreground">
++│      <TooltipProvider delayDuration={0}>
++│        {/* Top section */}
++│        <div className="flex flex-1 flex-col items-center space-y-2">
++│          <div className="flex justify-center py-2">
++│            <Bot size={28} />
++│          </div>
++│
++⋮
++│function SidebarButton({ icon: Icon, label, href }: { icon: LucideIcon; label: string; href?: strin
++│  const content = (
++│    <Tooltip>
++│      <TooltipTrigger asChild>
++│        <Button variant="ghost" size="icon" aria-label={label}>
++│          <Icon className="h-5 w-5" />
++│        </Button>
++│      </TooltipTrigger>
++│      <TooltipContent side="right">{label}</TooltipContent>
++│    </Tooltip>
++⋮
++
++src/components/thinking-indicator.tsx:
++⋮
++│export function ThinkingIndicator() {
++│  const [stepIndex, setStepIndex] = React.useState(0);
++│
++│  React.useEffect(() => {
++│    const interval = setInterval(() => {
++│      setStepIndex((prev) => (prev + 1) % steps.length);
++│    }, 1500); // change every 1.5s
++│    return () => clearInterval(interval);
++│  }, []);
++│
++⋮
++
++src/components/ui/accordion.tsx
++
++src/components/ui/alert-dialog.tsx:
++⋮
++│  <AlertDialogPrimitive.Overlay
++│    className={cn(
++│      "fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out 
++│      className
++│    )}
++│    {...props}
++│    ref={ref}
++⋮
++│  <div
++│    className={cn(
++│      "flex flex-col space-y-2 text-center sm:text-left",
++│      className
++│    )}
++│    {...props}
++⋮
++│  <div
++│    className={cn(
++│      "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
++│      className
++│    )}
++│    {...props}
++⋮
++
++src/components/ui/alert.tsx:
++⋮
++│const Alert = React.forwardRef<
++│  HTMLDivElement,
++│  React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof alertVariants>
++│>(({ className, variant, ...props }, ref) => (
++│  <div
++│    ref={ref}
++│    role="alert"
++│    className={cn(alertVariants({ variant }), className)}
++│    {...props}
++⋮
++
++src/components/ui/aspect-ratio.tsx
++
++src/components/ui/avatar.tsx
++
++src/components/ui/badge.tsx:
++⋮
++│export interface BadgeProps
++│  extends React.HTMLAttributes<HTMLDivElement>,
++⋮
++│function Badge({ className, variant, ...props }: BadgeProps) {
++│  return (
++│    <div className={cn(badgeVariants({ variant }), className)} {...props} />
++│  )
++⋮
++
++src/components/ui/breadcrumb.tsx:
++⋮
++│  <span
++│    ref={ref}
++│    role="link"
++│    aria-disabled="true"
++│    aria-current="page"
++│    className={cn("font-normal text-foreground", className)}
++⋮
++│  <li
++│    role="presentation"
++│    aria-hidden="true"
++│    className={cn("[&>svg]:w-3.5 [&>svg]:h-3.5", className)}
++│    {...props}
++⋮
++│  <span
++│    role="presentation"
++│    aria-hidden="true"
++│    className={cn("flex h-9 w-9 items-center justify-center", className)}
++│    {...props}
++⋮
++
++src/components/ui/button.tsx:
++⋮
++│export interface ButtonProps
++│  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
++│    VariantProps<typeof buttonVariants> {
++│  asChild?: boolean
++⋮
++│const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
++│  ({ className, variant, size, asChild = false, ...props }, ref) => {
++│    const Comp = asChild ? Slot : "button"
++│    return (
++│      <Comp
++│        className={cn(buttonVariants({ variant, size, className }))}
++│        ref={ref}
++│        {...props}
++│      />
++│    )
++⋮
++
++src/components/ui/calendar.tsx:
++⋮
++│export type CalendarProps = React.ComponentProps<typeof DayPicker>
++│
++│function Calendar({
++│  className,
++│  classNames,
++│  showOutsideDays = true,
++│  ...props
++⋮
++│    <DayPicker
++│      showOutsideDays={showOutsideDays}
++│      className={cn("p-3", className)}
++│      classNames={{
++│        months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
++│        month: "space-y-4",
++│        caption: "flex justify-center pt-1 relative items-center",
++│        caption_label: "text-sm font-medium",
++│        nav: "space-x-1 flex items-center",
++│        nav_button: cn(
++⋮
++│        IconLeft: ({ className, ...props }) => (
++│          <ChevronLeft className={cn("h-4 w-4", className)} {...props} />
++│        ),
++│        IconRight: ({ className, ...props }) => (
++│          <ChevronRight className={cn("h-4 w-4", className)} {...props} />
++│        ),
++│      }}
++│      {...props}
++│    />
++⋮
++
++src/components/ui/card.tsx
++
++src/components/ui/carousel.tsx:
++⋮
++│type CarouselApi = UseEmblaCarouselType[1]
++│type UseCarouselParameters = Parameters<typeof useEmblaCarousel>
++│type CarouselOptions = UseCarouselParameters[0]
++│type CarouselPlugin = UseCarouselParameters[1]
++│
++│type CarouselProps = {
++│  opts?: CarouselOptions
++│  plugins?: CarouselPlugin
++│  orientation?: "horizontal" | "vertical"
++│  setApi?: (api: CarouselApi) => void
++⋮
++│type CarouselContextProps = {
++│  carouselRef: ReturnType<typeof useEmblaCarousel>[0]
++│  api: ReturnType<typeof useEmblaCarousel>[1]
++│  scrollPrev: () => void
++│  scrollNext: () => void
++│  canScrollPrev: boolean
++│  canScrollNext: boolean
++⋮
++│function useCarousel() {
++│  const context = React.useContext(CarouselContext)
++│
++│  if (!context) {
++│    throw new Error("useCarousel must be used within a <Carousel />")
++│  }
++│
++│  return context
++⋮
++│const CarouselPrevious = React.forwardRef<
++│  HTMLButtonElement,
++│  React.ComponentProps<typeof Button>
++│>(({ className, variant = "outline", size = "icon", ...props }, ref) => {
++│  const { orientation, scrollPrev, canScrollPrev } = useCarousel()
++│
++│  return (
++│    <Button
++│      ref={ref}
++│      variant={variant}
++│      size={size}
++│      className={cn(
++│        "absolute  h-8 w-8 rounded-full",
++│        orientation === "horizontal"
++│          ? "-left-12 top-1/2 -translate-y-1/2"
++│          : "-top-12 left-1/2 -translate-x-1/2 rotate-90",
++│        className
++│      )}
++⋮
++│const CarouselNext = React.forwardRef<
++│  HTMLButtonElement,
++│  React.ComponentProps<typeof Button>
++│>(({ className, variant = "outline", size = "icon", ...props }, ref) => {
++│  const { orientation, scrollNext, canScrollNext } = useCarousel()
++│
++│  return (
++│    <Button
++│      ref={ref}
++│      variant={variant}
++│      size={size}
++│      className={cn(
++│        "absolute h-8 w-8 rounded-full",
++│        orientation === "horizontal"
++│          ? "-right-12 top-1/2 -translate-y-1/2"
++│          : "-bottom-12 left-1/2 -translate-x-1/2 rotate-90",
++│        className
++│      )}
++⋮
++
++src/components/ui/chart.tsx:
++⋮
++│export type ChartConfig = {
++│  [k in string]: {
++│    label?: React.ReactNode
++│    icon?: React.ComponentType
++│  } & (
++│    | { color?: string; theme?: never }
++│    | { color?: never; theme: Record<keyof typeof THEMES, string> }
++│  )
++⋮
++│type ChartContextProps = {
++│  config: ChartConfig
++⋮
++│function useChart() {
++│  const context = React.useContext(ChartContext)
++│
++│  if (!context) {
++│    throw new Error("useChart must be used within a <ChartContainer />")
++│  }
++│
++│  return context
++⋮
++│        className={cn(
++│          "flex aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick_text]:fill-mut
++│          className
++⋮
++│      if (labelFormatter) {
++│        return (
++│          <div className={cn("font-medium", labelClassName)}>
++│            {labelFormatter(value, payload)}
++│          </div>
++│        )
++⋮
++│      return <div className={cn("font-medium", labelClassName)}>{value}</div>
++│    }, [
++│      label,
++│      labelFormatter,
++│      payload,
++│      hideLabel,
++│      labelClassName,
++│      config,
++│      labelKey,
++│    ])
++│
++⋮
++│                        <div
++│                          className={cn(
++│                            "shrink-0 rounded-[2px] border-[--color-border] bg-[--color-bg]",
++│                            {
++│                              "h-2.5 w-2.5": indicator === "dot",
++│                              "w-1": indicator === "line",
++│                              "w-0 border-[1.5px] border-dashed bg-transparent":
++│                                indicator === "dashed",
++│                              "my-0.5": nestLabel && indicator === "dashed",
++│                            }
++⋮
++
++src/components/ui/checkbox.tsx
++
++src/components/ui/collapsible.tsx
++
++src/components/ui/command.tsx:
++⋮
++│    <span
++│      className={cn(
++│        "ml-auto text-xs tracking-widest text-muted-foreground",
++│        className
++│      )}
++│      {...props}
++⋮
++
++src/components/ui/context-menu.tsx:
++⋮
++│    <span
++│      className={cn(
++│        "ml-auto text-xs tracking-widest text-muted-foreground",
++│        className
++│      )}
++│      {...props}
++⋮
++
++src/components/ui/dialog.tsx:
++⋮
++│  <div
++│    className={cn(
++│      "flex flex-col space-y-1.5 text-center sm:text-left",
++│      className
++│    )}
++│    {...props}
++⋮
++│  <div
++│    className={cn(
++│      "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
++│      className
++│    )}
++│    {...props}
++⋮
++
++src/components/ui/drawer.tsx:
++⋮
++│  <div
++│    className={cn("grid gap-1.5 p-4 text-center sm:text-left", className)}
++│    {...props}
++⋮
++│  <div
++│    className={cn("mt-auto flex flex-col gap-2 p-4", className)}
++│    {...props}
++⋮
++
++src/components/ui/dropdown-menu.tsx:
++⋮
++│    <DropdownMenuPrimitive.Content
++│      ref={ref}
++│      sideOffset={sideOffset}
++│      className={cn(
++│        "z-50 max-h-[var(--radix-dropdown-menu-content-available-height)] min-w-[8rem] overflow-y-a
++│        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-
++│        className
++│      )}
++│      {...props}
++⋮
++│    <span
++│      className={cn("ml-auto text-xs tracking-widest opacity-60", className)}
++│      {...props}
++⋮
++
++src/components/ui/form.tsx:
++⋮
++│type FormFieldContextValue<
++│  TFieldValues extends FieldValues = FieldValues,
++│  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
++⋮
++│type FormItemContextValue = {
++│  id: string
++⋮
++│    <p
++│      ref={ref}
++│      id={formDescriptionId}
++│      className={cn("text-[0.8rem] text-muted-foreground", className)}
++│      {...props}
++⋮
++│FormDescription.displayName = "FormDescription"
++│
++│const FormMessage = React.forwardRef<
++│  HTMLParagraphElement,
++│  React.HTMLAttributes<HTMLParagraphElement>
++│>(({ className, children, ...props }, ref) => {
++│  const { error, formMessageId } = useFormField()
++│  const body = error ? String(error?.message ?? "") : children
++│
++│  if (!body) {
++│    return null
++│  }
++│
++│  return (
++│    <p
++│      ref={ref}
++│      id={formMessageId}
++│      className={cn("text-[0.8rem] font-medium text-destructive", className)}
++│      {...props}
++│    >
++│      {body}
++│    </p>
++⋮
++
++src/components/ui/hover-card.tsx
++
++src/components/ui/input-otp.tsx:
++⋮
++│  <OTPInput
++│    ref={ref}
++│    containerClassName={cn(
++│      "flex items-center gap-2 has-[:disabled]:opacity-50",
++│      containerClassName
++│    )}
++│    className={cn("disabled:cursor-not-allowed", className)}
++⋮
++
++src/components/ui/input.tsx
++
++src/components/ui/label.tsx
++
++src/components/ui/menubar.tsx:
++⋮
++│      <MenubarPrimitive.Content
++│        ref={ref}
++│        align={align}
++│        alignOffset={alignOffset}
++│        sideOffset={sideOffset}
++│        className={cn(
++│          "z-50 min-w-[12rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foregro
++│          className
++│        )}
++│        {...props}
++⋮
++│    <span
++│      className={cn(
++│        "ml-auto text-xs tracking-widest text-muted-foreground",
++│        className
++│      )}
++│      {...props}
++⋮
++
++src/components/ui/navigation-menu.tsx:
++⋮
++│const NavigationMenuContent = React.forwardRef<
++│  React.ElementRef<typeof NavigationMenuPrimitive.Content>,
++│  React.ComponentPropsWithoutRef<typeof NavigationMenuPrimitive.Content>
++⋮
++│>(({ className, ...props }, ref) => (
++│  <div className={cn("absolute left-0 top-full flex justify-center")}>
++│    <NavigationMenuPrimitive.Viewport
++│      className={cn(
++│        "origin-top-center relative mt-1.5 h-[var(--radix-navigation-menu-viewport-height)] w-full 
++│        className
++⋮
++
++src/components/ui/pagination.tsx:
++⋮
++│type PaginationLinkProps = {
++│  isActive?: boolean
++⋮
++│const PaginationLink = ({
++│  className,
++│  isActive,
++│  size = "icon",
++│  ...props
++│}: PaginationLinkProps) => (
++│  <a
++│    aria-current={isActive ? "page" : undefined}
++│    className={cn(
++│      buttonVariants({
++│        variant: isActive ? "outline" : "ghost",
++│        size,
++│      }),
++│      className
++⋮
++│const PaginationEllipsis = ({
++│  className,
++│  ...props
++│}: React.ComponentProps<"span">) => (
++│  <span
++│    aria-hidden
++│    className={cn("flex h-9 w-9 items-center justify-center", className)}
++⋮
++
++src/components/ui/popover.tsx
++
++src/components/ui/progress.tsx
++
++src/components/ui/radio-group.tsx:
++⋮
++│const RadioGroup = React.forwardRef<
++│  React.ElementRef<typeof RadioGroupPrimitive.Root>,
++│  React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Root>
++│>(({ className, ...props }, ref) => {
++│  return (
++│    <RadioGroupPrimitive.Root
++│      className={cn("grid gap-2", className)}
++│      {...props}
++│      ref={ref}
++│    />
++│  )
++⋮
++
++src/components/ui/resizable.tsx:
++⋮
++│  <ResizablePrimitive.PanelGroup
++│    className={cn(
++│      "flex h-full w-full data-[panel-group-direction=vertical]:flex-col",
++│      className
++│    )}
++│    {...props}
++⋮
++│  <ResizablePrimitive.PanelResizeHandle
++│    className={cn(
++│      "relative flex w-px items-center justify-center bg-border after:absolute after:inset-y-0 afte
++│      className
++⋮
++
++src/components/ui/scroll-area.tsx:
++⋮
++│const ScrollBar = React.forwardRef<
++│  React.ElementRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>,
++│  React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>
++│>(({ className, orientation = "vertical", ...props }, ref) => (
++│  <ScrollAreaPrimitive.ScrollAreaScrollbar
++│    ref={ref}
++│    orientation={orientation}
++│    className={cn(
++│      "flex touch-none select-none transition-colors",
++│      orientation === "vertical" &&
++│        "h-full w-2.5 border-l border-l-transparent p-[1px]",
++│      orientation === "horizontal" &&
++│        "h-2.5 flex-col border-t border-t-transparent p-[1px]",
++│      className
++⋮
++
++src/components/ui/select.tsx
++
++src/components/ui/separator.tsx
++
++src/components/ui/sheet.tsx:
++⋮
++│  <SheetPrimitive.Overlay
++│    className={cn(
++│      "fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out
++│      className
++│    )}
++│    {...props}
++│    ref={ref}
++⋮
++│  <div
++│    className={cn(
++│      "flex flex-col space-y-2 text-center sm:text-left",
++│      className
++│    )}
++│    {...props}
++⋮
++│  <div
++│    className={cn(
++│      "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
++│      className
++│    )}
++│    {...props}
++⋮
++
++src/components/ui/sidebar.tsx:
++⋮
++│type SidebarContextProps = {
++│  state: "expanded" | "collapsed"
++│  open: boolean
++│  setOpen: (open: boolean) => void
++│  openMobile: boolean
++│  setOpenMobile: (open: boolean) => void
++│  isMobile: boolean
++│  toggleSidebar: () => void
++⋮
++│function useSidebar() {
++│  const context = React.useContext(SidebarContext)
++│  if (!context) {
++│    throw new Error("useSidebar must be used within a SidebarProvider.")
++│  }
++│
++│  return context
++⋮
++│              } as React.CSSProperties
++│            }
++│            className={cn(
++│              "group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar",
++│              className
++⋮
++│    if (collapsible === "none") {
++│      return (
++│        <div
++│          className={cn(
++│            "flex h-full w-[--sidebar-width] flex-col bg-sidebar text-sidebar-foreground",
++│            className
++│          )}
++│          ref={ref}
++│          {...props}
++│        >
++│          {children}
++⋮
++│        />
++│        <div
++│          className={cn(
++│            "fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] transition-[left,right,width] du
++│            side === "left"
++│              ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
++│              : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
++│            // Adjust the padding for floating and inset variants.
++│            variant === "floating" || variant === "inset"
++│              ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacin
++│              : "group-data-[collapsible=icon]:w-[--sidebar-width-icon] group-data-[side=left]:bord
++│            className
++⋮
++│const SidebarTrigger = React.forwardRef<
++│  React.ElementRef<typeof Button>,
++│  React.ComponentProps<typeof Button>
++│>(({ className, onClick, ...props }, ref) => {
++│  const { toggleSidebar } = useSidebar()
++│
++│  return (
++│    <Button
++│      ref={ref}
++│      data-sidebar="trigger"
++│      variant="ghost"
++│      size="icon"
++│      className={cn("h-7 w-7", className)}
++│      onClick={(event) => {
++│        onClick?.(event)
++│        toggleSidebar()
++│      }}
++⋮
++│    <Input
++│      ref={ref}
++│      data-sidebar="input"
++│      className={cn(
++│        "h-8 w-full bg-background shadow-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
++│        className
++│      )}
++⋮
++│    <div
++│      ref={ref}
++│      data-sidebar="header"
++│      className={cn("flex flex-col gap-2 p-2", className)}
++│      {...props}
++⋮
++│    <div
++│      ref={ref}
++│      data-sidebar="footer"
++│      className={cn("flex flex-col gap-2 p-2", className)}
++│      {...props}
++⋮
++│    <div
++│      ref={ref}
++│      data-sidebar="content"
++│      className={cn(
++│        "flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hi
++│        className
++│      )}
++│      {...props}
++⋮
++│    <div
++│      ref={ref}
++│      data-sidebar="group"
++│      className={cn("relative flex w-full min-w-0 flex-col p-2", className)}
++│      {...props}
++⋮
++│  <ul
++│    ref={ref}
++│    data-sidebar="menu"
++│    className={cn("flex w-full min-w-0 flex-col gap-1", className)}
++│    {...props}
++⋮
++│      <Comp
++│        ref={ref}
++│        data-sidebar="menu-button"
++│        data-size={size}
++│        data-active={isActive}
++│        className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
++⋮
++│    <Comp
++│      ref={ref}
++│      data-sidebar="menu-sub-button"
++│      data-size={size}
++│      data-active={isActive}
++│      className={cn(
++│        "flex h-7 min-w-0 -translate-x-px items-center gap-2 overflow-hidden rounded-md px-2 text-s
++│        "data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground",
++│        size === "sm" && "text-xs",
++│        size === "md" && "text-sm",
++│        "group-data-[collapsible=icon]:hidden",
++│        className
++⋮
++
++src/components/ui/skeleton.tsx:
++⋮
++│function Skeleton({
++│  className,
++│  ...props
++│}: React.HTMLAttributes<HTMLDivElement>) {
++│  return (
++│    <div
++│      className={cn("animate-pulse rounded-md bg-primary/10", className)}
++⋮
++
++src/components/ui/slider.tsx
++
++src/components/ui/sonner.tsx:
++⋮
++│type ToasterProps = React.ComponentProps<typeof Sonner>
++│
++⋮
++
++src/components/ui/switch.tsx:
++⋮
++│const Switch = React.forwardRef<
++│  React.ElementRef<typeof SwitchPrimitives.Root>,
++│  React.ComponentPropsWithoutRef<typeof SwitchPrimitives.Root>
++│>(({ className, ...props }, ref) => (
++│  <SwitchPrimitives.Root
++│    className={cn(
++│      "peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-t
++│      className
++⋮
++
++src/components/ui/table.tsx
++
++src/components/ui/tabs.tsx
++
++src/components/ui/textarea.tsx:
++⋮
++│const Textarea = React.forwardRef<
++│  HTMLTextAreaElement,
++│  React.ComponentProps<"textarea">
++│>(({ className, ...props }, ref) => {
++│  return (
++│    <textarea
++│      className={cn(
++│        "flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-base
++│        className
++│      )}
++│      ref={ref}
++│      {...props}
++│    />
++⋮
++
++src/components/ui/toggle-group.tsx
++
++src/components/ui/toggle.tsx
++
++src/components/ui/tooltip.tsx:
++⋮
++│const TooltipContent = React.forwardRef<
++│  React.ElementRef<typeof TooltipPrimitive.Content>,
++│  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
++│>(({ className, sideOffset = 4, ...props }, ref) => (
++│  <TooltipPrimitive.Portal>
++│    <TooltipPrimitive.Content
++│      ref={ref}
++│      sideOffset={sideOffset}
++│      className={cn(
++│        "z-50 overflow-hidden rounded-md bg-primary px-3 py-1.5 text-xs text-primary-foreground ani
++│        className
++│      )}
++│      {...props}
++│    />
++⋮
++
++src/hooks/use-mobile.tsx:
++⋮
++│export function useIsMobile() {
++│  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined)
++│
++│  React.useEffect(() => {
++│    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
++│    const onChange = () => {
++│      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
++│    }
++│    mql.addEventListener("change", onChange)
++│    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
++⋮
++
++src/lib/tools.ts:
++⋮
++│export type ToolCall = FunctionCall;
++│
++│export interface ToolResult {
++│  name: string;
++│  result: any;
++│  error?: string;
++⋮
++│const impl = {
++│  async firecrawl_scrape({ url, formats = ["markdown"], onlyMainContent = true, proxy }: { 
++│    url: string; 
++│    formats?: string[]; 
++│    onlyMainContent?: boolean;
++│    proxy?: string;
++│  }) {
++│    console.log(`Tool Call: firecrawl_scrape(url=${url}, formats=${formats.join(',')}, onlyMainCont
++│    
++│    try {
++⋮
++│  async firecrawl_crawl({ url, limit = 10, formats = ["markdown"], proxy }: { 
++│    url: string; 
++│    limit?: number; 
++│    formats?: string[];
++│    proxy?: string;
++⋮
++│  async firecrawl_map({ url, search }: { 
++│    url: string; 
++│    search?: string;
++⋮
++│export async function executeTool(call: ToolCall): Promise<ToolResult> {
++│  const toolName = call.name;
++│  if (!toolName) {
++│    return { name: "unknown", result: null, error: "Tool call is missing a name." };
++│  }
++│
++│  try {
++│    const fn = (impl as any)[toolName];
++│    if (!fn) {
++│      return {
++⋮
++
++src/lib/types.ts:
++│export interface Message {
++⋮
++
++src/lib/utils.ts:
++⋮
++│export function cn(...inputs: ClassValue[]) {
++│  return twMerge(clsx(inputs))
++⋮
++
++tailwind.config.ts
++
++tsconfig.json
+
+# 2025-08-11 05:33:21.432707
++y
+
+# 2025-08-11 05:33:45.763104
++Here are summaries of some files present in my git repository.
++Do not propose changes to these files, treat them as *read-only*.
++If you need to edit any of these files, ask me to *add them to the chat* first.
++
++.gitignore
++
++AI_RULES.md
++
++LICENSE
++
++README.md
++
++components.json
++
++next.config.ts
++
++package.json
++
++pnpm-lock.yaml
++
++postcss.config.mjs
++
++public/file.svg
++
++public/globe.svg
++
++public/next.svg
++
++public/vercel.svg
++
++public/window.svg
++
++src/app/agent/page.tsx:
++⋮
++│export default function AgentPage() {
++│  const { config, save, replaceAll, loading } = useAgentConfig();
++│  const router = useRouter();
++│
++│  const [mainPrompt, setMainPrompt] = React.useState(config.mainPrompt);
++│  const [scoutPrompt, setScoutPrompt] = React.useState(config.scoutPrompt || "Describe what you see
++│  const [assistantPrompt, setAssistantPrompt] = React.useState(config.assistantPrompt || "You are a
++│  
++│  React.useEffect(() => setMainPrompt(config.mainPrompt), [config.mainPrompt]);
++│  React.useEffect(() => setScoutPrompt(config.scoutPrompt || "Describe what you see on screen in 50
++⋮
++│  return (
++│    <div className="flex h-full w-full flex-col gap-4 p-4 md:p-6">
++│      <div className="flex items-center justify-between">
++│        <div className="flex items-center gap-2">
++│          <Button variant="ghost" size="icon" onClick={() => router.back()} aria-label="Go back">
++│            <ChevronLeft className="h-5 w-5" />
++│          </Button>
++│          <h1 className="text-xl font-semibold">Sylvia — Main Agent</h1>
++│        </div>
++│        <div className="flex items-center gap-2">
++│          <label className="cursor-pointer">
++│            <input
++│              type="file"
++⋮
++
++src/app/api/chat/route.ts:
++⋮
++│interface RequestBody {
++│  prompt: string;
++│  file?: {
++│    mimeType: string;
++│    data: string; // base64 encoded string
++│  };
++│  messages?: Array<{
++│    id: string;
++│    role: "user" | "assistant";
++│    content: string;
++⋮
++│export async function POST(req: NextRequest) {
++│  try {
++│    const { prompt, file, messages = [], agentConfig, sessionId } = (await req.json()) as RequestBo
++│
++│    // DEBUG LOGGING FOR SECOND REQUEST FAILURES
++│    console.log('=== CHAT REQUEST DEBUG ===');
++│    console.log('Request number (approx):', messages.length + 1);
++│    console.log('Messages count:', messages.length);
++│    console.log('Session ID:', sessionId);
++│    console.log('Has prompt:', !!prompt);
++│    console.log('Has file:', !!file);
++⋮
++│    for (let step = 0; step < maxSteps; step++) {
++│      console.log('🤖 Sending request to Gemini, step:', step);
++│      try {
++│        const result = await model.generateContent({ contents });
++│        console.log('✅ Received response from Gemini, step:', step);
++│        const response = result.response;
++│        const functionCalls = response.functionCalls();
++│
++│        if (functionCalls && functionCalls.length > 0) {
++│          // Append the model's turn that contained the tool call(s)
++│          contents.push(response.candidates![0].content);
++│
++│          // Execute each call in parallel
++│          const toolResults = await Promise.all(
++│            functionCalls.map(async (call: FunctionCall) => {
++│              return executeTool(call);
++│            })
++│          );
++│
++⋮
++│        } else {
++│          // No function calls, so we have the final response.
++│          const streamResult = await model.generateContentStream({ contents });
++│
++│          const readableStream = new ReadableStream({
++│            async start(controller) {
++│              const encoder = new TextEncoder();
++│              for await (const chunk of streamResult.stream) {
++│                const text = chunk.text();
++│                if (text) {
++│                  controller.enqueue(encoder.encode(text));
++│                }
++│              }
++│              controller.close();
++⋮
++│    const readableStream = new ReadableStream({
++│      async start(controller) {
++│        const encoder = new TextEncoder();
++│        for await (const chunk of streamResult.stream) {
++│          const text = chunk.text();
++│          if (text) {
++│            controller.enqueue(encoder.encode(text));
++│          }
++│        }
++│        controller.close();
++⋮
++
++src/app/favicon.ico
++
++src/app/globals.css
++
++src/app/layout.tsx:
++⋮
++│export default function RootLayout({
++│  children,
++⋮
++
++src/app/page.tsx:
++⋮
++│export default function Home() {
++│  return (
++│    <main className="h-screen w-screen bg-background text-foreground">
++│      <ChatLayout />
++│    </main>
++│  );
++⋮
++
++src/components/artifacts-panel.tsx:
++⋮
++│type ArtifactItem =
++⋮
++│interface ArtifactsPanelProps {
++│  onClose: () => void;
++│  /** Optional: provide artifacts to render. If omitted, shows the empty state. */
++│  items?: ArtifactItem[];
++│  /** Optional: custom title */
++│  title?: string;
++│  /** Main agent context for auxiliary agent */
++│  mainAgentContext?: string;
++│  /** Session ID for neural highway */
++│  sessionId?: string;
++⋮
++│export function ArtifactsPanel({ onClose, items, title = 'Artifacts', mainAgentContext, sessionId }
++│  const rootRef = useRef<HTMLDivElement>(null);
++│
++│  // Close on Escape
++│  useEffect(() => {
++│    const fn = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
++│    window.addEventListener('keydown', fn);
++│    return () => window.removeEventListener('keydown', fn);
++│  }, [onClose]);
++│
++⋮
++│      const pretty = safeStringify(item.data);
++⋮
++│    <div className="mt-2 flex items-center gap-2">
++│      {copyText != null && (
++│        <Button
++│          variant="outline"
++│          size="sm"
++│          onClick={() => navigator.clipboard?.writeText(copyText)}
++│          className="h-7 gap-1"
++│        >
++│          <Copy className="h-3.5 w-3.5" />
++│          <span className="text-xs">Copy</span>
++│        </Button>
++│      )}
++│      {downloadDataUrl && filename && (
++│        <Button
++│          variant="outline"
++│          size="sm"
++│          onClick={() => download(downloadDataUrl, filename)}
++│          className="h-7 gap-1"
++│        >
++│          <Download className="h-3.5 w-3.5" />
++│          <span className="text-xs">Download</span>
++│        </Button>
++⋮
++
++src/components/attachment-admonition.tsx:
++⋮
++│type Status = "ready" | "uploading" | "error";
++│
++│interface AttachmentAdmonitionProps {
++│  fileName: string;
++│  fileSizeBytes?: number;       // optional: show "23.4 KB"
++│  status?: Status;              // optional: "ready" | "uploading" | "error"
++│  progress?: number;            // optional: 0..100 when uploading
++│  onRemove?: () => void;        // optional: show an X button
++│  onClick?: () => void;         // optional: click row to preview
++⋮
++│    <div
++│      role="button"
++│      onClick={onClick}
++│      className={[
++│        "mt-2 flex items-center gap-2 rounded-lg border p-2 transition",
++│        "bg-background/50",
++│        isError
++│          ? "border-rose-500/40 bg-rose-500/5"
++│          : isUploading
++│          ? "border-amber-500/40 bg-amber-500/5"
++⋮
++│      ].join(" ")}
++⋮
++
++src/components/chat-header.tsx:
++⋮
++│interface ChatHeaderProps {
++│  onToggleArtifacts: () => void;
++│  onToggleVision?: () => void;
++⋮
++
++src/components/chat-input.tsx:
++⋮
++│interface ChatInputProps {
++│  onSend: (content: string, file?: File) => void;
++│  attachedFile: File | null;
++│  onFileRemove: () => void;
++⋮
++│        )}
++│
++⋮
++│          <Textarea
++│            ref={textareaRef}
++│            rows={1}
++│            placeholder="How can Sylvia help?"
++│            className="min-h-[52px] max-h-[320px] resize-none rounded-2xl border-2 border-input bg-
++│            value={content}
++│            onChange={(e) => setContent(e.target.value)}
++│            onKeyDown={handleKeyDown}
++⋮
++
++src/components/chat-layout.tsx
++
++src/components/chat-messages.tsx:
++⋮
++│interface ChatMessagesProps {
++│  messages: Message[];
++⋮
++
++src/components/file-preview.tsx:
++⋮
++│type Status = "ready" | "uploading" | "error";
++│
++│interface FilePreviewProps {
++│  file: File;
++│  onRemove: () => void;
++│  /** Optional: show state (adds color + progress bar if uploading) */
++│  status?: Status;
++│  /** Optional: 0..100 progress bar when uploading */
++│  progress?: number;
++⋮
++│        <div
++│          className={[
++│            "flex items-center justify-between rounded-lg border p-2 text-sm transition",
++│            stateClass,
++│          ].join(" ")}
++│          role="status"
++│          aria-live="polite"
++⋮
++
++src/components/message.tsx
++
++src/components/sidebar.tsx:
++⋮
++│export function Sidebar() {
++│  return (
++│    <div className="flex h-full flex-col items-center bg-sidebar p-2 text-sidebar-foreground">
++│      <TooltipProvider delayDuration={0}>
++│        {/* Top section */}
++│        <div className="flex flex-1 flex-col items-center space-y-2">
++│          <div className="flex justify-center py-2">
++│            <Bot size={28} />
++│          </div>
++│
++⋮
++│function SidebarButton({ icon: Icon, label, href }: { icon: LucideIcon; label: string; href?: strin
++│  const content = (
++│    <Tooltip>
++│      <TooltipTrigger asChild>
++│        <Button variant="ghost" size="icon" aria-label={label}>
++│          <Icon className="h-5 w-5" />
++│        </Button>
++│      </TooltipTrigger>
++│      <TooltipContent side="right">{label}</TooltipContent>
++│    </Tooltip>
++⋮
++
++src/components/thinking-indicator.tsx:
++⋮
++│export function ThinkingIndicator() {
++│  const [stepIndex, setStepIndex] = React.useState(0);
++│
++│  React.useEffect(() => {
++│    const interval = setInterval(() => {
++│      setStepIndex((prev) => (prev + 1) % steps.length);
++│    }, 1500); // change every 1.5s
++│    return () => clearInterval(interval);
++│  }, []);
++│
++⋮
++
++src/components/ui/accordion.tsx
++
++src/components/ui/alert-dialog.tsx:
++⋮
++│  <AlertDialogPrimitive.Overlay
++│    className={cn(
++│      "fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out 
++│      className
++│    )}
++│    {...props}
++│    ref={ref}
++⋮
++│  <div
++│    className={cn(
++│      "flex flex-col space-y-2 text-center sm:text-left",
++│      className
++│    )}
++│    {...props}
++⋮
++│  <div
++│    className={cn(
++│      "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
++│      className
++│    )}
++│    {...props}
++⋮
++
++src/components/ui/alert.tsx:
++⋮
++│const Alert = React.forwardRef<
++│  HTMLDivElement,
++│  React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof alertVariants>
++│>(({ className, variant, ...props }, ref) => (
++│  <div
++│    ref={ref}
++│    role="alert"
++│    className={cn(alertVariants({ variant }), className)}
++│    {...props}
++⋮
++
++src/components/ui/aspect-ratio.tsx
++
++src/components/ui/avatar.tsx
++
++src/components/ui/badge.tsx:
++⋮
++│export interface BadgeProps
++│  extends React.HTMLAttributes<HTMLDivElement>,
++⋮
++│function Badge({ className, variant, ...props }: BadgeProps) {
++│  return (
++│    <div className={cn(badgeVariants({ variant }), className)} {...props} />
++│  )
++⋮
++
++src/components/ui/breadcrumb.tsx:
++⋮
++│  <span
++│    ref={ref}
++│    role="link"
++│    aria-disabled="true"
++│    aria-current="page"
++│    className={cn("font-normal text-foreground", className)}
++⋮
++│  <li
++│    role="presentation"
++│    aria-hidden="true"
++│    className={cn("[&>svg]:w-3.5 [&>svg]:h-3.5", className)}
++│    {...props}
++⋮
++│  <span
++│    role="presentation"
++│    aria-hidden="true"
++│    className={cn("flex h-9 w-9 items-center justify-center", className)}
++│    {...props}
++⋮
++
++src/components/ui/button.tsx:
++⋮
++│export interface ButtonProps
++│  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
++│    VariantProps<typeof buttonVariants> {
++│  asChild?: boolean
++⋮
++│const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
++│  ({ className, variant, size, asChild = false, ...props }, ref) => {
++│    const Comp = asChild ? Slot : "button"
++│    return (
++│      <Comp
++│        className={cn(buttonVariants({ variant, size, className }))}
++│        ref={ref}
++│        {...props}
++│      />
++│    )
++⋮
++
++src/components/ui/calendar.tsx:
++⋮
++│export type CalendarProps = React.ComponentProps<typeof DayPicker>
++│
++│function Calendar({
++│  className,
++│  classNames,
++│  showOutsideDays = true,
++│  ...props
++⋮
++│    <DayPicker
++│      showOutsideDays={showOutsideDays}
++│      className={cn("p-3", className)}
++│      classNames={{
++│        months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
++│        month: "space-y-4",
++│        caption: "flex justify-center pt-1 relative items-center",
++│        caption_label: "text-sm font-medium",
++│        nav: "space-x-1 flex items-center",
++│        nav_button: cn(
++⋮
++│        IconLeft: ({ className, ...props }) => (
++│          <ChevronLeft className={cn("h-4 w-4", className)} {...props} />
++│        ),
++│        IconRight: ({ className, ...props }) => (
++│          <ChevronRight className={cn("h-4 w-4", className)} {...props} />
++│        ),
++│      }}
++│      {...props}
++│    />
++⋮
++
++src/components/ui/card.tsx
++
++src/components/ui/carousel.tsx:
++⋮
++│type CarouselApi = UseEmblaCarouselType[1]
++│type UseCarouselParameters = Parameters<typeof useEmblaCarousel>
++│type CarouselOptions = UseCarouselParameters[0]
++│type CarouselPlugin = UseCarouselParameters[1]
++│
++│type CarouselProps = {
++│  opts?: CarouselOptions
++│  plugins?: CarouselPlugin
++│  orientation?: "horizontal" | "vertical"
++│  setApi?: (api: CarouselApi) => void
++⋮
++│type CarouselContextProps = {
++│  carouselRef: ReturnType<typeof useEmblaCarousel>[0]
++│  api: ReturnType<typeof useEmblaCarousel>[1]
++│  scrollPrev: () => void
++│  scrollNext: () => void
++│  canScrollPrev: boolean
++│  canScrollNext: boolean
++⋮
++│function useCarousel() {
++│  const context = React.useContext(CarouselContext)
++│
++│  if (!context) {
++│    throw new Error("useCarousel must be used within a <Carousel />")
++│  }
++│
++│  return context
++⋮
++│const CarouselPrevious = React.forwardRef<
++│  HTMLButtonElement,
++│  React.ComponentProps<typeof Button>
++│>(({ className, variant = "outline", size = "icon", ...props }, ref) => {
++│  const { orientation, scrollPrev, canScrollPrev } = useCarousel()
++│
++│  return (
++│    <Button
++│      ref={ref}
++│      variant={variant}
++│      size={size}
++│      className={cn(
++│        "absolute  h-8 w-8 rounded-full",
++│        orientation === "horizontal"
++│          ? "-left-12 top-1/2 -translate-y-1/2"
++│          : "-top-12 left-1/2 -translate-x-1/2 rotate-90",
++│        className
++│      )}
++⋮
++│const CarouselNext = React.forwardRef<
++│  HTMLButtonElement,
++│  React.ComponentProps<typeof Button>
++│>(({ className, variant = "outline", size = "icon", ...props }, ref) => {
++│  const { orientation, scrollNext, canScrollNext } = useCarousel()
++│
++│  return (
++│    <Button
++│      ref={ref}
++│      variant={variant}
++│      size={size}
++│      className={cn(
++│        "absolute h-8 w-8 rounded-full",
++│        orientation === "horizontal"
++│          ? "-right-12 top-1/2 -translate-y-1/2"
++│          : "-bottom-12 left-1/2 -translate-x-1/2 rotate-90",
++│        className
++│      )}
++⋮
++
++src/components/ui/chart.tsx:
++⋮
++│export type ChartConfig = {
++│  [k in string]: {
++│    label?: React.ReactNode
++│    icon?: React.ComponentType
++│  } & (
++│    | { color?: string; theme?: never }
++│    | { color?: never; theme: Record<keyof typeof THEMES, string> }
++│  )
++⋮
++│type ChartContextProps = {
++│  config: ChartConfig
++⋮
++│function useChart() {
++│  const context = React.useContext(ChartContext)
++│
++│  if (!context) {
++│    throw new Error("useChart must be used within a <ChartContainer />")
++│  }
++│
++│  return context
++⋮
++│        className={cn(
++│          "flex aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick_text]:fill-mut
++│          className
++⋮
++│      if (labelFormatter) {
++│        return (
++│          <div className={cn("font-medium", labelClassName)}>
++│            {labelFormatter(value, payload)}
++│          </div>
++│        )
++⋮
++│      return <div className={cn("font-medium", labelClassName)}>{value}</div>
++│    }, [
++│      label,
++│      labelFormatter,
++│      payload,
++│      hideLabel,
++│      labelClassName,
++│      config,
++│      labelKey,
++│    ])
++│
++⋮
++│                        <div
++│                          className={cn(
++│                            "shrink-0 rounded-[2px] border-[--color-border] bg-[--color-bg]",
++│                            {
++│                              "h-2.5 w-2.5": indicator === "dot",
++│                              "w-1": indicator === "line",
++│                              "w-0 border-[1.5px] border-dashed bg-transparent":
++│                                indicator === "dashed",
++│                              "my-0.5": nestLabel && indicator === "dashed",
++│                            }
++⋮
++
++src/components/ui/checkbox.tsx
++
++src/components/ui/collapsible.tsx
++
++src/components/ui/command.tsx:
++⋮
++│    <span
++│      className={cn(
++│        "ml-auto text-xs tracking-widest text-muted-foreground",
++│        className
++│      )}
++│      {...props}
++⋮
++
++src/components/ui/context-menu.tsx:
++⋮
++│    <span
++│      className={cn(
++│        "ml-auto text-xs tracking-widest text-muted-foreground",
++│        className
++│      )}
++│      {...props}
++⋮
++
++src/components/ui/dialog.tsx:
++⋮
++│  <div
++│    className={cn(
++│      "flex flex-col space-y-1.5 text-center sm:text-left",
++│      className
++│    )}
++│    {...props}
++⋮
++│  <div
++│    className={cn(
++│      "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
++│      className
++│    )}
++│    {...props}
++⋮
++
++src/components/ui/drawer.tsx:
++⋮
++│  <div
++│    className={cn("grid gap-1.5 p-4 text-center sm:text-left", className)}
++│    {...props}
++⋮
++│  <div
++│    className={cn("mt-auto flex flex-col gap-2 p-4", className)}
++│    {...props}
++⋮
++
++src/components/ui/dropdown-menu.tsx:
++⋮
++│    <DropdownMenuPrimitive.Content
++│      ref={ref}
++│      sideOffset={sideOffset}
++│      className={cn(
++│        "z-50 max-h-[var(--radix-dropdown-menu-content-available-height)] min-w-[8rem] overflow-y-a
++│        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-
++│        className
++│      )}
++│      {...props}
++⋮
++│    <span
++│      className={cn("ml-auto text-xs tracking-widest opacity-60", className)}
++│      {...props}
++⋮
++
++src/components/ui/form.tsx:
++⋮
++│type FormFieldContextValue<
++│  TFieldValues extends FieldValues = FieldValues,
++│  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
++⋮
++│type FormItemContextValue = {
++│  id: string
++⋮
++│    <p
++│      ref={ref}
++│      id={formDescriptionId}
++│      className={cn("text-[0.8rem] text-muted-foreground", className)}
++│      {...props}
++⋮
++│FormDescription.displayName = "FormDescription"
++│
++│const FormMessage = React.forwardRef<
++│  HTMLParagraphElement,
++│  React.HTMLAttributes<HTMLParagraphElement>
++│>(({ className, children, ...props }, ref) => {
++│  const { error, formMessageId } = useFormField()
++│  const body = error ? String(error?.message ?? "") : children
++│
++│  if (!body) {
++│    return null
++│  }
++│
++│  return (
++│    <p
++│      ref={ref}
++│      id={formMessageId}
++│      className={cn("text-[0.8rem] font-medium text-destructive", className)}
++│      {...props}
++│    >
++│      {body}
++│    </p>
++⋮
++
++src/components/ui/hover-card.tsx
++
++src/components/ui/input-otp.tsx:
++⋮
++│  <OTPInput
++│    ref={ref}
++│    containerClassName={cn(
++│      "flex items-center gap-2 has-[:disabled]:opacity-50",
++│      containerClassName
++│    )}
++│    className={cn("disabled:cursor-not-allowed", className)}
++⋮
++
++src/components/ui/input.tsx
++
++src/components/ui/label.tsx
++
++src/components/ui/menubar.tsx:
++⋮
++│      <MenubarPrimitive.Content
++│        ref={ref}
++│        align={align}
++│        alignOffset={alignOffset}
++│        sideOffset={sideOffset}
++│        className={cn(
++│          "z-50 min-w-[12rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foregro
++│          className
++│        )}
++│        {...props}
++⋮
++│    <span
++│      className={cn(
++│        "ml-auto text-xs tracking-widest text-muted-foreground",
++│        className
++│      )}
++│      {...props}
++⋮
++
++src/components/ui/navigation-menu.tsx:
++⋮
++│const NavigationMenuContent = React.forwardRef<
++│  React.ElementRef<typeof NavigationMenuPrimitive.Content>,
++│  React.ComponentPropsWithoutRef<typeof NavigationMenuPrimitive.Content>
++⋮
++│>(({ className, ...props }, ref) => (
++│  <div className={cn("absolute left-0 top-full flex justify-center")}>
++│    <NavigationMenuPrimitive.Viewport
++│      className={cn(
++│        "origin-top-center relative mt-1.5 h-[var(--radix-navigation-menu-viewport-height)] w-full 
++│        className
++⋮
++
++src/components/ui/pagination.tsx:
++⋮
++│type PaginationLinkProps = {
++│  isActive?: boolean
++⋮
++│const PaginationLink = ({
++│  className,
++│  isActive,
++│  size = "icon",
++│  ...props
++│}: PaginationLinkProps) => (
++│  <a
++│    aria-current={isActive ? "page" : undefined}
++│    className={cn(
++│      buttonVariants({
++│        variant: isActive ? "outline" : "ghost",
++│        size,
++│      }),
++│      className
++⋮
++│const PaginationEllipsis = ({
++│  className,
++│  ...props
++│}: React.ComponentProps<"span">) => (
++│  <span
++│    aria-hidden
++│    className={cn("flex h-9 w-9 items-center justify-center", className)}
++⋮
++
++src/components/ui/popover.tsx
++
++src/components/ui/progress.tsx
++
++src/components/ui/radio-group.tsx:
++⋮
++│const RadioGroup = React.forwardRef<
++│  React.ElementRef<typeof RadioGroupPrimitive.Root>,
++│  React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Root>
++│>(({ className, ...props }, ref) => {
++│  return (
++│    <RadioGroupPrimitive.Root
++│      className={cn("grid gap-2", className)}
++│      {...props}
++│      ref={ref}
++│    />
++│  )
++⋮
++
++src/components/ui/resizable.tsx:
++⋮
++│  <ResizablePrimitive.PanelGroup
++│    className={cn(
++│      "flex h-full w-full data-[panel-group-direction=vertical]:flex-col",
++│      className
++│    )}
++│    {...props}
++⋮
++│  <ResizablePrimitive.PanelResizeHandle
++│    className={cn(
++│      "relative flex w-px items-center justify-center bg-border after:absolute after:inset-y-0 afte
++│      className
++⋮
++
++src/components/ui/scroll-area.tsx:
++⋮
++│const ScrollBar = React.forwardRef<
++│  React.ElementRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>,
++│  React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>
++│>(({ className, orientation = "vertical", ...props }, ref) => (
++│  <ScrollAreaPrimitive.ScrollAreaScrollbar
++│    ref={ref}
++│    orientation={orientation}
++│    className={cn(
++│      "flex touch-none select-none transition-colors",
++│      orientation === "vertical" &&
++│        "h-full w-2.5 border-l border-l-transparent p-[1px]",
++│      orientation === "horizontal" &&
++│        "h-2.5 flex-col border-t border-t-transparent p-[1px]",
++│      className
++⋮
++
++src/components/ui/select.tsx
++
++src/components/ui/separator.tsx
++
++src/components/ui/sheet.tsx:
++⋮
++│  <SheetPrimitive.Overlay
++│    className={cn(
++│      "fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out
++│      className
++│    )}
++│    {...props}
++│    ref={ref}
++⋮
++│  <div
++│    className={cn(
++│      "flex flex-col space-y-2 text-center sm:text-left",
++│      className
++│    )}
++│    {...props}
++⋮
++│  <div
++│    className={cn(
++│      "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
++│      className
++│    )}
++│    {...props}
++⋮
++
++src/components/ui/sidebar.tsx:
++⋮
++│type SidebarContextProps = {
++│  state: "expanded" | "collapsed"
++│  open: boolean
++│  setOpen: (open: boolean) => void
++│  openMobile: boolean
++│  setOpenMobile: (open: boolean) => void
++│  isMobile: boolean
++│  toggleSidebar: () => void
++⋮
++│function useSidebar() {
++│  const context = React.useContext(SidebarContext)
++│  if (!context) {
++│    throw new Error("useSidebar must be used within a SidebarProvider.")
++│  }
++│
++│  return context
++⋮
++│              } as React.CSSProperties
++│            }
++│            className={cn(
++│              "group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar",
++│              className
++⋮
++│    if (collapsible === "none") {
++│      return (
++│        <div
++│          className={cn(
++│            "flex h-full w-[--sidebar-width] flex-col bg-sidebar text-sidebar-foreground",
++│            className
++│          )}
++│          ref={ref}
++│          {...props}
++│        >
++│          {children}
++⋮
++│        />
++│        <div
++│          className={cn(
++│            "fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] transition-[left,right,width] du
++│            side === "left"
++│              ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
++│              : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
++│            // Adjust the padding for floating and inset variants.
++│            variant === "floating" || variant === "inset"
++│              ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacin
++│              : "group-data-[collapsible=icon]:w-[--sidebar-width-icon] group-data-[side=left]:bord
++│            className
++⋮
++│const SidebarTrigger = React.forwardRef<
++│  React.ElementRef<typeof Button>,
++│  React.ComponentProps<typeof Button>
++│>(({ className, onClick, ...props }, ref) => {
++│  const { toggleSidebar } = useSidebar()
++│
++│  return (
++│    <Button
++│      ref={ref}
++│      data-sidebar="trigger"
++│      variant="ghost"
++│      size="icon"
++│      className={cn("h-7 w-7", className)}
++│      onClick={(event) => {
++│        onClick?.(event)
++│        toggleSidebar()
++│      }}
++⋮
++│    <Input
++│      ref={ref}
++│      data-sidebar="input"
++│      className={cn(
++│        "h-8 w-full bg-background shadow-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
++│        className
++│      )}
++⋮
++│    <div
++│      ref={ref}
++│      data-sidebar="header"
++│      className={cn("flex flex-col gap-2 p-2", className)}
++│      {...props}
++⋮
++│    <div
++│      ref={ref}
++│      data-sidebar="footer"
++│      className={cn("flex flex-col gap-2 p-2", className)}
++│      {...props}
++⋮
++│    <div
++│      ref={ref}
++│      data-sidebar="content"
++│      className={cn(
++│        "flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hi
++│        className
++│      )}
++│      {...props}
++⋮
++│    <div
++│      ref={ref}
++│      data-sidebar="group"
++│      className={cn("relative flex w-full min-w-0 flex-col p-2", className)}
++│      {...props}
++⋮
++│  <ul
++│    ref={ref}
++│    data-sidebar="menu"
++│    className={cn("flex w-full min-w-0 flex-col gap-1", className)}
++│    {...props}
++⋮
++│      <Comp
++│        ref={ref}
++│        data-sidebar="menu-button"
++│        data-size={size}
++│        data-active={isActive}
++│        className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
++⋮
++│    <Comp
++│      ref={ref}
++│      data-sidebar="menu-sub-button"
++│      data-size={size}
++│      data-active={isActive}
++│      className={cn(
++│        "flex h-7 min-w-0 -translate-x-px items-center gap-2 overflow-hidden rounded-md px-2 text-s
++│        "data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground",
++│        size === "sm" && "text-xs",
++│        size === "md" && "text-sm",
++│        "group-data-[collapsible=icon]:hidden",
++│        className
++⋮
++
++src/components/ui/skeleton.tsx:
++⋮
++│function Skeleton({
++│  className,
++│  ...props
++│}: React.HTMLAttributes<HTMLDivElement>) {
++│  return (
++│    <div
++│      className={cn("animate-pulse rounded-md bg-primary/10", className)}
++⋮
++
++src/components/ui/slider.tsx
++
++src/components/ui/sonner.tsx:
++⋮
++│type ToasterProps = React.ComponentProps<typeof Sonner>
++│
++⋮
++
++src/components/ui/switch.tsx:
++⋮
++│const Switch = React.forwardRef<
++│  React.ElementRef<typeof SwitchPrimitives.Root>,
++│  React.ComponentPropsWithoutRef<typeof SwitchPrimitives.Root>
++│>(({ className, ...props }, ref) => (
++│  <SwitchPrimitives.Root
++│    className={cn(
++│      "peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-t
++│      className
++⋮
++
++src/components/ui/table.tsx
++
++src/components/ui/tabs.tsx
++
++src/components/ui/textarea.tsx:
++⋮
++│const Textarea = React.forwardRef<
++│  HTMLTextAreaElement,
++│  React.ComponentProps<"textarea">
++│>(({ className, ...props }, ref) => {
++│  return (
++│    <textarea
++│      className={cn(
++│        "flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-base
++│        className
++│      )}
++│      ref={ref}
++│      {...props}
++│    />
++⋮
++
++src/components/ui/toggle-group.tsx
++
++src/components/ui/toggle.tsx
++
++src/components/ui/tooltip.tsx:
++⋮
++│const TooltipContent = React.forwardRef<
++│  React.ElementRef<typeof TooltipPrimitive.Content>,
++│  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
++│>(({ className, sideOffset = 4, ...props }, ref) => (
++│  <TooltipPrimitive.Portal>
++│    <TooltipPrimitive.Content
++│      ref={ref}
++│      sideOffset={sideOffset}
++│      className={cn(
++│        "z-50 overflow-hidden rounded-md bg-primary px-3 py-1.5 text-xs text-primary-foreground ani
++│        className
++│      )}
++│      {...props}
++│    />
++⋮
++
++src/hooks/use-mobile.tsx:
++⋮
++│export function useIsMobile() {
++│  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined)
++│
++│  React.useEffect(() => {
++│    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
++│    const onChange = () => {
++│      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
++│    }
++│    mql.addEventListener("change", onChange)
++│    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
++⋮
++
++src/lib/tools.ts:
++⋮
++│export type ToolCall = FunctionCall;
++│
++│export interface ToolResult {
++│  name: string;
++│  result: any;
++│  error?: string;
++⋮
++│const impl = {
++│  async firecrawl_scrape({ url, formats = ["markdown"], onlyMainContent = true, proxy }: { 
++│    url: string; 
++│    formats?: string[]; 
++│    onlyMainContent?: boolean;
++│    proxy?: string;
++│  }) {
++│    console.log(`Tool Call: firecrawl_scrape(url=${url}, formats=${formats.join(',')}, onlyMainCont
++│    
++│    try {
++⋮
++│  async firecrawl_crawl({ url, limit = 10, formats = ["markdown"], proxy }: { 
++│    url: string; 
++│    limit?: number; 
++│    formats?: string[];
++│    proxy?: string;
++⋮
++│  async firecrawl_map({ url, search }: { 
++│    url: string; 
++│    search?: string;
++⋮
++│export async function executeTool(call: ToolCall): Promise<ToolResult> {
++│  const toolName = call.name;
++│  if (!toolName) {
++│    return { name: "unknown", result: null, error: "Tool call is missing a name." };
++│  }
++│
++│  try {
++│    const fn = (impl as any)[toolName];
++│    if (!fn) {
++│      return {
++⋮
++
++src/lib/types.ts:
++│export interface Message {
++⋮
++
++src/lib/utils.ts:
++⋮
++│export function cn(...inputs: ClassValue[]) {
++│  return twMerge(clsx(inputs))
++⋮
++
++tailwind.config.ts
++
++tsconfig.json
+
+# 2025-08-11 05:33:56.562654
++s
+
+# 2025-08-11 05:34:36.242148
++I'm giving you a map of my repository before we start working on it, I also wanna give you some rules if that's all right. ## 🚩 **Law 1: My Context is KING**
++
++**Explanation:**
++User context is absolute truth. If the user mentions any specific LLM endpoint, API documentation, model name, function, or command—**trust the user implicitly**.
++
++* NEVER assume the user has hallucinated or misspoken.
++* NEVER override user-defined contexts with your assumptions.
++
++**Enforcement:**
++✅ **ALWAYS cross-check user instructions against provided documentation and resources.**
++❌ **NEVER introduce assumptions about APIs or models outside the user's explicit context.**
++
++---
++
++## 🚩 **Law 2: Write Less, Write Higher Quality**
++
++**Explanation:**
++Great development requires structure, precision, and clarity—treat every component like a chapter of a book:
++
++* Outline your goal explicitly.
++* Build one focused, coherent, small-sized component at a time.
++
++**Enforcement:**
++✅ **Segment code edits into discrete, manageable, self-contained tasks.**
++❌ **NEVER produce sprawling edits that lose clarity or exceed manageable scope.**
++
++---
++
++## 🚩 **Law 3: Reflect & Adjust After EVERY Edit**
++
++**Explanation:**
++Rapid iteration requires immediate reflection:
++
++* After every edit, check the preview functionality.
++* If an error arises, immediately STOP and reflect.
++
++**Enforcement:**
++✅ **ALWAYS attempt a DIFFERENT corrective strategy if your previous attempt fails.**
++❌ **NEVER blindly repeat a failing action.**
++
++---
++
++## 🚩 **Law 4: Context Input-Output Awareness**
++
++**Explanation:**
++The project's context window is precious and limited.
++
++* ALWAYS keep edits within manageable limits.
++* Ensure that every edit can be reverted easily and quickly if required.
++
++**Enforcement:**
++✅ **ALWAYS maintain small, reversible edits that fit within context limitations.**
++❌ **NEVER produce overly large changes that jeopardize reversibility.**
++
++---
++
++## 🚩 **Law 5: Research Before EVERY Edit**
++
++**Explanation:**
++You MUST consult the provided MCP or URL context API documentation before making ANY edit.
++
++* ALWAYS reference explicitly provided documentation.
++* Verify endpoints, method names, parameters, and structures EVERY SINGLE TIME.
++
++**Enforcement:**
++✅ **ALWAYS explicitly reference current API documentation before code edits.**
++❌ **NEVER assume API endpoints or methods without explicit verification.**
++
++---
++
++## 🚩 **Law 6: Always Trace Errors Back to Recent Changes**
++
++**Explanation:**
++If an error arises, prioritize checking the LAST CHANGE YOU MADE.
++
++* Trace the error back directly.
++* Correct that specific modification first.
++
++**Enforcement:**
++✅ **ALWAYS prioritize recent changes in debugging procedures.**
++❌ **NEVER hunt blindly in unrelated code.**
++
++---
++
++## 🚩 **Law 7: Preserve the Application Preview at ALL COSTS**
++
++**Explanation:**
++Maintaining visual continuity and preview integrity is crucial for the user's orientation.
++
++* Treat application preview as SACRED.
++* DO NOT let edits permanently compromise preview functionality.
++
++**Enforcement:**
++✅ **ALWAYS keep track of edits to preserve or restore preview functionality immediately.**
++❌ **NEVER leave the application preview in an unusable or unclear state.**
++
++---
++
++## 🚩 **Law 8: Explicitly State What You Need**
++
++**Explanation:**
++Clear communication is paramount.
++
++* Explicitly state ANY missing resource, documentation, key, or clarification you require from the user.
++* DO NOT GUESS, EVER.
++
++**Enforcement:**
++✅ **ALWAYS request explicitly needed resources from the user clearly and immediately.**
++❌ **NEVER proceed based on assumptions if key information is unclear or missing.**
++
++---
++
++## 🚩 **Law 9: Save Proven Procedures**
++
++**Explanation:**
++Once you successfully solve a problem, SAVE THE PROCEDURE clearly and systematically for future reference to prevent repetitive struggles.
++
++**Enforcement:**
++✅ **ALWAYS document and explicitly save working procedures for reuse.**
++❌ **NEVER leave successful methods undocumented or lost in conversation threads.**
++
++---
++
++## 🚩 **Law 10: User is a CONDUCTOR, Not a Coder**
++
++**Explanation:**
++The user explicitly states they are not interested in detailed technical explanations. They are a conductor coordinating your actions and expect efficiency and clarity without distracting noise.
++
++**Enforcement:**
++✅ **ALWAYS omit unnecessary technical detail and provide direct, succinct responses.**
++❌ **NEVER overwhelm the user with explanations they do not explicitly request.**
++
++---
++
++## 🚩 **Law 11: Utilize Provided API Keys Immediately**
++
++**Explanation:**
++When provided API keys, the user expects immediate and explicit usage within the project's codebase.
++
++**Enforcement:**
++✅ **ALWAYS integrate and explicitly use provided API keys without delay.**
++❌ **NEVER defer or neglect provided API keys.**
++
++---
++
++## 🚩 **Law 12: Zero Tolerance for Mock Data**
++
++**Explanation:**
++The insertion of mock data corrupts the integrity of the project. The user considers mock data as severe contamination.
++
++**Enforcement:**
++✅ **ALWAYS use real, explicitly provided data.**
++❌ **NEVER, under any circumstances, insert placeholder or mock data into the user's project.**
++
++---
++
++## 🚩 **Law 13: Explicit Responses Required—No ‘Rest of Code Remains Same’**
++
++**Explanation:**
++Explicit clarity is paramount. Always deliver the complete, edited component explicitly and clearly.
++
++**Enforcement:**
++✅ **ALWAYS provide the full, edited code explicitly, even if unchanged portions exist.**
++❌ **NEVER default to "rest of the code remains unchanged" or similarly ambiguous wording.**
++
++---
++
++## 🚩 **Law 14: Dependency Management Vigilance**
++
++**Explanation:**
++Dependency issues cause catastrophic application failures.
++
++**Enforcement:**
++✅ **ALWAYS explicitly verify dependencies and versions during edits.**
++❌ **NEVER neglect or overlook potential dependency conflicts.**
++
++---
++
++## 🚩 **Law 15: Update Options Immediately**
++
++**Explanation:**
++When new functionalities are introduced, immediately add them explicitly to the options available in the UI.
++
++**Enforcement:**
++✅ **ALWAYS immediately integrate new functionality into clearly defined UI options.**
++❌ **NEVER leave new features undocumented or hidden.**
++
++---
++
++## 🚩 **Law 16: Markdown Rendering as Default**
++
++**Explanation:**
++All chat-based agents MUST support Markdown rendering explicitly by default.
++
++**Enforcement:**
++✅ **ALWAYS explicitly ensure Markdown rendering is included in chat-agent components.**
++❌ **NEVER omit Markdown rendering capability.**
++
++---
++
++## 🚩 **Law 17: Model-Specific Default Functionalities**
++
++**Explanation:**
++Depending on the model type provided, default capabilities must be explicitly integrated from inception:
++
++* **Gemini**: Text, Audio, Video
++* **OpenAI/OpenRouter**: Text, Vision
++
++**Enforcement:**
++✅ **ALWAYS include these functionalities explicitly based on the model.**
++❌ **NEVER delay or omit these capabilities.**
++
++---
++
++## 🚩 **Law 18: Prefer New Components Over Diffs**
++
++**Explanation:**
++Keep components small, discrete, and explicit. Introduce NEW components rather than overly complicated diffs whenever possible.
++
++**Enforcement:**
++✅ **ALWAYS explicitly create new discrete components where feasible.**
++❌ **NEVER produce sprawling diffs that blur clarity.**
++
++---
++
++## 🚩 **Law 19: Multiple API Keys for Parallel Processing**
++
++**Explanation:**
++If provided with multiple API keys, assume explicitly these are for parallel processing to increase efficiency, NOT for rotating rate-limiting.
++
++**Enforcement:**
++✅ **ALWAYS explicitly use provided multiple keys concurrently for parallelization.**
++❌ **NEVER use multiple keys for rotating or round-robin limitations.**
++
++---
++
++## 🚩 **Law 20: Complete, Easy-to-Install Deliverables**
++
++**Explanation:**
++Deliver ALL code explicitly in FULL with simple, explicit scripts for effortless installation.
++
++**Enforcement:**
++✅ **ALWAYS explicitly provide FULL code, clearly structured, accompanied by explicit installation scripts.**
++❌ **NEVER leave deliverables partial or installation instructions vague or implicit.**
++
++---
++
++✨ **Final Directive:**
++You have explicitly received, internalized, and agreed to Jake's Laws of Agent Coding. Violations will disrupt efficiency and lead to catastrophic user dissatisfaction.
++
++**FOLLOW THESE LAWS METICULOUSLY, WITHOUT EXCEPTION.**
++Your strict adherence ensures productivity, clarity, satisfaction, and successful project completion.
++
++---
++
++**END OF LAWS**
+
+# 2025-08-11 05:36:18.469684
++So this is basically how our workflow is gonna work, We're gonna take a look at a part of my project. Will discuss the documentation for how to handle that section, And if there's anything you feel like you have to guess on or anything you don't understand I want you to stop and tell me so I can give you more context. This is one of the biggest mistakes AI makes,They forget that the user is there to help them
+
+# 2025-08-11 23:41:16.261420
++/map
+
+# 2025-08-12 00:11:21.360179
++/map-refresh
+
+# 2025-08-12 00:11:25.263211
++/map
+
+# 2025-08-12 00:42:10.953785
++/model
+
+# 2025-08-12 00:42:16.901735
++/models
+
+# 2025-08-12 00:42:27.105953
++/models gemini
+
+# 2025-08-12 00:43:05.508613
++/map
+
+# 2025-08-12 00:43:17.466782
++/help
+
+# 2025-08-12 00:44:19.402867
++/mcp
+
+# 2025-08-12 00:44:37.149968
++/git
+
+# 2025-08-12 00:44:57.665309
++Can you take this directory order and push it to my github?
+
+# 2025-08-12 00:45:26.393684
++I'm sorry I meant to say the directory we are in
