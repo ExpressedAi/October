@@ -1,5 +1,7 @@
 type AgentConfig = {
   mainPrompt: string;
+  scoutPrompt?: string;
+  assistantPrompt?: string;
   commands: Command[];
   cartridges: Cartridge[];
   updatedAt: number;
