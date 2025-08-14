@@ -28,6 +28,7 @@ interface RedisStats {
 }
 
 export default function NeuralHighwayPage() {
+  const [isHydrated, setIsHydrated] = useState(false);
   const [masterEnabled, setMasterEnabled] = useState<boolean>(true);
   const [agents, setAgents] = useState<AgentConfig[]>([
     {
@@ -35,7 +36,7 @@ export default function NeuralHighwayPage() {
       name: 'Sylvia (Main Chat)',
       description: 'Primary chat interface agent',
       enabled: true,
-      contextLimit: 100,
+      contextLimit: 10,
       broadcastEnabled: true,
       recentActivity: 24
     },
@@ -44,7 +45,7 @@ export default function NeuralHighwayPage() {
       name: 'Auxiliary Agent',
       description: 'Secondary helper agent',
       enabled: true,
-      contextLimit: 50,
+      contextLimit: 10,
       broadcastEnabled: true,
       recentActivity: 12
     },
@@ -53,7 +54,7 @@ export default function NeuralHighwayPage() {
       name: 'Vision Analysis',
       description: 'Image and visual analysis agent',
       enabled: true,
-      contextLimit: 75,
+      contextLimit: 10,
       broadcastEnabled: true,
       recentActivity: 8
     }
@@ -69,9 +70,14 @@ export default function NeuralHighwayPage() {
   const [isTestingConnection, setIsTestingConnection] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'unknown' | 'connected' | 'error'>('unknown');
 
-  // Load settings from localStorage
+  // Hydration effect - runs once after component mounts
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    setIsHydrated(true);
+  }, []);
+
+  // Load settings from localStorage ONLY after hydration
+  useEffect(() => {
+    if (isHydrated && typeof window !== 'undefined') {
       const savedMaster = localStorage.getItem('neuralHighway.masterEnabled');
       if (savedMaster) {
         setMasterEnabled(savedMaster === 'true');
@@ -79,14 +85,19 @@ export default function NeuralHighwayPage() {
 
       const savedAgents = localStorage.getItem('neuralHighway.agents');
       if (savedAgents) {
-        setAgents(JSON.parse(savedAgents));
+        try {
+          const parsedAgents = JSON.parse(savedAgents);
+          setAgents(parsedAgents);
+        } catch (error) {
+          console.warn('Failed to parse saved agents, using defaults');
+        }
       }
     }
-  }, []);
+  }, [isHydrated]);
 
-  // Save settings to localStorage
+  // Save settings to localStorage ONLY after hydration
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (isHydrated && typeof window !== 'undefined') {
       localStorage.setItem('neuralHighway.masterEnabled', masterEnabled.toString());
       localStorage.setItem('neuralHighway.agents', JSON.stringify(agents));
       
@@ -94,7 +105,7 @@ export default function NeuralHighwayPage() {
       (window as any).neuralHighwayEnabled = masterEnabled;
       (window as any).neuralHighwayAgentConfig = agents;
     }
-  }, [masterEnabled, agents]);
+  }, [isHydrated, masterEnabled, agents]);
 
   const testConnection = async () => {
     setIsTestingConnection(true);
@@ -133,7 +144,7 @@ export default function NeuralHighwayPage() {
         name: 'Sylvia (Main Chat)',
         description: 'Primary chat interface agent',
         enabled: true,
-        contextLimit: 100,
+        contextLimit: 10,
         broadcastEnabled: true,
         recentActivity: 24
       },
@@ -142,7 +153,7 @@ export default function NeuralHighwayPage() {
         name: 'Auxiliary Agent',
         description: 'Secondary helper agent',
         enabled: true,
-        contextLimit: 50,
+        contextLimit: 10,
         broadcastEnabled: true,
         recentActivity: 12
       },
@@ -151,12 +162,26 @@ export default function NeuralHighwayPage() {
         name: 'Vision Analysis',
         description: 'Image and visual analysis agent',
         enabled: true,
-        contextLimit: 75,
+        contextLimit: 10,
         broadcastEnabled: true,
         recentActivity: 8
       }
     ]);
   };
+
+  // Show loading state until hydrated
+  if (!isHydrated) {
+    return (
+      <div className="container mx-auto py-8 px-4 max-w-6xl">
+        <div className="flex items-center justify-center h-64">
+          <div className="flex items-center gap-2">
+            <Brain className="w-6 h-6 text-blue-500 animate-pulse" />
+            <span className="text-muted-foreground">Loading Neural Highway...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-6xl">
