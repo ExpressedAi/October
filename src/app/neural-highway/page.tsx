@@ -169,18 +169,9 @@ export default function NeuralHighwayPage() {
     ]);
   };
 
-  // Show loading state until hydrated
+  // Show loading state until hydrated - simplified for SSR compatibility
   if (!isHydrated) {
-    return (
-      <div className="container mx-auto py-8 px-4 max-w-6xl">
-        <div className="flex items-center justify-center h-64">
-          <div className="flex items-center gap-2">
-            <Brain className="w-6 h-6 text-blue-500 animate-pulse" />
-            <span className="text-muted-foreground">Loading Neural Highway...</span>
-          </div>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (
